@@ -8,6 +8,7 @@ var DevilPace = DevilPace || {};
     var cloud4;
     var cloud5;
     var bigCloud;
+    var fontFamily = '"Helvetica Neue", Helvetica, STHeiTi, sans-serif';
 
     DevilPace.play = {
         preload: function () {
@@ -36,6 +37,8 @@ var DevilPace = DevilPace || {};
             // for debug
             var upDuration = 8000;
             var upDelay = 1000;
+            // var upDuration = 1;
+            // var upDelay = 1;
             var tweenDudeUp = game.add.tween(dude).to({y: -500}, upDuration, Phaser.Easing.Quadratic.InOut, false, upDelay);
             var tweenDude = game.add.tween(dude).to({y: '30'}, 1500, Phaser.Easing.Sinusoidal.InOut, false, 0, -1, true);
 
@@ -44,13 +47,14 @@ var DevilPace = DevilPace || {};
 
             bigCloud = game.add.image(0, -850, 'big-cloud');
 
+            // dialogs
             var dialog1 = game.add.image(345, -313, 'dialog-1');
             dialog1.scale.set(0);
             dialog1.alpha = 0.6;
             dialog1.anchor.set(1, 0.3);
             var tweenDialog1 = game.add.tween(dialog1.scale).to({x: 1, y: 1}, 600, Phaser.Easing.Back.Out, false, 500);
 
-            var dlg1Style = {font: '14pt Arial', fill: '#333'};
+            var dlg1Style = {font: '14pt ' + fontFamily, fill: '#333'};
             var dlg1Content = 'I’ve been wanting to meet you.\nWould you be my friend?';
             var dlg1Text = game.add.text(55, -320, '', dlg1Style);
             dlg1Text.lineSpacing = 15;
@@ -60,10 +64,18 @@ var DevilPace = DevilPace || {};
             dialog2.scale.set(0);
             dialog2.alpha = 0.6;
             dialog2.anchor.set(0, 1);
-            var tweenDialog2 = game.add.tween(dialog2.scale).to({x: 1, y: 1}, 600, Phaser.Easing.Back.Out, false, 1200);
+            var tweenDialog2 = game.add.tween(dialog2.scale).to({x: 1, y: 1}, 600, Phaser.Easing.Back.Out, false, 1000);
 
+            var addition = game.add.image(205, -255, 'addition');
+            addition.scale.set(0);
+            addition.anchor.set(0.5, 0);
+            var showAddition = game.add.tween(addition.scale)
+                .to({x: 0.35, y: 0.35}, 500, Phaser.Easing.Back.Out, false, 1000);
+
+            // buttons
             var onClick = function () {
                 tweenMask.start();
+                mask.inputEnabled = true;
             };
             var button1 = game.add.button(265, -623, 'button-1', onClick, this, 1, 0, 1);
             var button2 = game.add.button(265, -553, 'button-2', onClick, this, 1, 0, 1);
@@ -75,34 +87,133 @@ var DevilPace = DevilPace || {};
             var tweenButton1 = game.add.tween(button1.scale).to({x: 1, y: 1}, 500, Phaser.Easing.Back.Out, false);
             var tweenButton2 = game.add.tween(button2.scale).to({x: 1, y: 1}, 500, Phaser.Easing.Back.Out, false);
 
+            // mask
             var mask = game.add.image(0, -800, 'mask');
             mask.scale.set(game.world.width, game.world.height);
             mask.alpha = 0;
             var tweenMask = game.add.tween(mask).to({alpha: 0.6}, 500, Phaser.Easing.Quadratic.InOut, false);
 
-            var card = game.add.image(game.world.width/2, -500, 'card');
-            card.anchor.set(0.5);
-            card.alpha = 0;
-            var tweenCard = game.add.tween(card).to({alpha: 0.8}, 500, Phaser.Easing.Quadratic.InOut, false);
+            // var card = game.add.image(game.world.width/2, -500, 'card');
+            // card.anchor.set(0.5);
+            // card.alpha = 0;
+            // var tweenCard = game.add.tween(card).to({alpha: 0.8}, 500, Phaser.Easing.Quadratic.InOut, false);
+
+            // popup
+            var popup = game.add.image(40, -675, 'popup');
+            popup.anchor.set(0, 0);
+            popup.alpha = 0;
+            var showPopup = game.add.tween(popup)
+                .to({alpha: 1}, 500, Phaser.Easing.Quadratic.Out);
+            var popupConfig = [
+                {
+                    text: '我',
+                    fill: '#aaa'
+                },
+                {
+                    text: '愿意',
+                    fill: '#aaa'
+                },
+                {
+                    text: '陪伴你',
+                    fill: '#aaa'
+                },
+                {
+                    text: '哭得像个孩子',
+                    fill: '#ff9494'
+                }
+            ];
+            var popupTexts = [];
+            var popupTextCount = popupConfig.length;
+
+            showPopup.onComplete.add(function () {
+                popupConfig.forEach(function (config, index) {
+                    var text = game.add.text(
+                        40, 80 + 100 * index,
+                        config.text,
+                        {
+                            font: 'bold 50px ' + fontFamily,
+                            fill: config.fill
+                        }
+                    );
+                    text.alpha = 0;
+                    popupTexts.push(text);
+                    popup.addChild(text);
+                    var show = game.add.tween(text)
+                        .to({alpha: 1}, 1000, Phaser.Easing.Quadratic.Out, false, 300 + index * 2000);
+                    if (index === popupTextCount - 1) {
+                        show.onComplete.add(function () {
+                            popupTexts.forEach(hideTexts);
+                        });
+                    }
+                    show.start();
+                });
+            });
+
+            function hideTexts() {
+                popupTexts.forEach(function (text, index) {
+                    var hide = game.add.tween(text)
+                        .to({alpha: 0}, 1000, Phaser.Easing.Quadratic.In, false, 1000);
+                    if (index === popupTextCount - 1) {
+                        hide.chain(showPortrait);
+                    }
+                    hide.start();
+                });
+            }
+
+            var portrait = game.add.image(popup.width / 2, 65, 'portrait');
+            portrait.anchor.set(0.5, 0);
+            portrait.scale.set(0.7);
+            portrait.alpha = 0;
+            popup.addChild(portrait);
+            var showPortrait = game.add.tween(portrait)
+                .to({alpha: 1}, 1000, Phaser.Easing.Quadratic.Out, false);
+            showPortrait.onComplete.add(function () {
+                showColor.start();
+            });
+
+            var colorful = game.add.image(popup.width / 2, 65, 'portrait-colorful');
+            colorful.anchor.set(0.5, 0);
+            colorful.scale.set(0.7);
+            colorful.alpha = 0;
+            popup.addChild(colorful);
+            var showColor = game.add.tween(colorful)
+                .to({alpha: 1}, 2500, Phaser.Easing.Quadratic.Out, false, 1000);
+            showColor.onComplete.add(function () {
+                showSlogan.start();
+            });
+
+            var slogan = game.add.image(popup.width / 2, 430, 'slogan');
+            slogan.anchor.set(0.5, 0);
+            slogan.scale.set(0.7);
+            slogan.alpha = 0;
+            popup.addChild(slogan);
+            var showSlogan = game.add.tween(slogan)
+                .to({alpha: 1}, 1000, Phaser.Easing.Quadratic.Out, false, 200);
+
+
+            // function 
 
             // tweens
             tweenDudeUp.chain(tweenDude);
             tweenDudeUp.onComplete.add(function () {
                 tweenDialog1.start();
             });
-            var index = 0;
-            var length = dlg1Content.length;
-            tweenDialog1.onComplete.add(function () {
-                game.time.events.repeat(80, length, function () {
-                    dlg1Text.setText(dlg1Content.substr(0, ++index));
-                    if (index === length) {
-                        tweenDialog2.start();
-                    }
+            (function () {
+                var index = 0;
+                var length = dlg1Content.length;
+                tweenDialog1.onComplete.add(function () {
+                    game.time.events.repeat(80, length, function () {
+                        dlg1Text.setText(dlg1Content.substr(0, ++index));
+                        if (index === length) {
+                            showAddition.start();
+                        }
+                    });
                 });
-            });
+            })();
+            showAddition.chain(tweenDialog2);
             tweenDialog2.chain(tweenButton1);
             tweenButton1.chain(tweenButton2);
-            tweenMask.chain(tweenCard);
+            tweenMask.chain(showPopup);
             tweenDudeUp.start();
             tweenBalloon.start();
         },
